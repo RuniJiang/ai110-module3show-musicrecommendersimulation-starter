@@ -32,9 +32,9 @@ Real-world recommenders such as Spotify or YouTube combine two main ideas. Colla
 
 **`UserProfile`**:
 
-- `favorite_genre`: the genre to match
-- `favorite_mood`: the mood to match
-- `target_energy` (0–1): the energy level the user wants
+- `genre`: the genre to match
+- `mood`: the mood to match
+- `energy` (0–1): the energy level the user wants
 - `likes_acoustic` (bool): when true, the target acousticness is high; when false, it is low
 
 ### Taste Profile
@@ -43,9 +43,9 @@ The recommender compares every song against one taste profile, a dictionary of t
 
 ```python
 taste_profile = {
-    "favorite_genre": "lofi",
-    "favorite_mood": "chill",
-    "target_energy": 0.40,
+    "genre": "lofi",
+    "mood": "chill",
+    "energy": 0.40,
     "likes_acoustic": True,   # target acousticness ~0.8
 }
 ```
@@ -60,9 +60,9 @@ A song's score is the sum of four point rules. Numeric features are scored by cl
 
 | Rule | Points | How it is computed |
 |---|---|---|
-| Genre match | **+2.0** | `song.genre == user.favorite_genre`, otherwise 0 |
-| Mood match | **+1.0** | `song.mood == user.favorite_mood`, otherwise 0 |
-| Energy similarity | **0 to +2.0** | `2.0 * (1 - abs(song.energy - user.target_energy))` |
+| Genre match | **+2.0** | `song.genre == user.genre`, otherwise 0 |
+| Mood match | **+1.0** | `song.mood == user.mood`, otherwise 0 |
+| Energy similarity | **0 to +2.0** | `2.0 * (1 - abs(song.energy - user.energy))` |
 | Acousticness similarity | **0 to +0.5** | `0.5 * (1 - abs(song.acousticness - target_acoustic))`, where `target_acoustic` is 0.8 if `likes_acoustic` else 0.2 |
 
 Maximum possible score: **5.5**.
