@@ -37,6 +37,19 @@ Real-world recommenders such as Spotify or YouTube combine two main ideas. Colla
 - `target_energy` (0–1): the energy level the user wants
 - `likes_acoustic` (bool): when true, the target acousticness is high; when false, it is low
 
+### Taste Profile
+
+The recommender compares every song against one taste profile, a dictionary of target values for the features above:
+
+```python
+taste_profile = {
+    "favorite_genre": "lofi",
+    "favorite_mood": "chill",
+    "target_energy": 0.40,
+    "likes_acoustic": True,   # target acousticness ~0.8
+}
+```
+
 ### Scoring Rule (one song)
 
 Numeric features are scored by closeness, not magnitude, so a song scores highest when it is near the user's target:
