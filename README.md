@@ -2,16 +2,7 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
-
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+This project is a small, content-based music recommender. It loads 20 songs from `data/songs.csv` (genre, mood, energy, tempo, valence, danceability, acousticness), takes a user taste profile, scores every song with a weighted rule (genre match, mood match, energy closeness, acousticness), and prints the top 5 with a plain-language reason for each pick. I tested it on three normal listeners and eleven edge-case profiles to see where it works and where it breaks. See the [Model Card](model_card.md) for the full evaluation.
 
 ---
 
@@ -179,6 +170,8 @@ Loaded songs: 20
 ## Profile Experiments: Terminal Output
 
 Raw output of `python src/main.py` for every profile in `PROFILES` (standard) and `ADVERSARIAL_PROFILES` (edge cases designed to trick the scorer).
+
+**How the outputs differ:** The High-Energy Pop profile surfaces loud, electronic or pop tracks (Sunrise City, Gym Hero). The Chill Lofi profile shifts to quiet, acoustic songs (Library Rain, Midnight Coding). The Deep Intense Rock profile leads with Storm Runner and pulls in other very loud songs. Pop and Lofi share no songs, which shows the energy and acousticness scoring is working.
 
 ### High-Energy Pop
 
@@ -671,25 +664,25 @@ Raw output of `python src/main.py` for every profile in `PROFILES` (standard) an
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+- **Weight shift (genre 2.0 -> 1.0, energy up to 2.0 -> 4.0):** The Happy Pop list filled up with a rock song and a reggaeton song, only because their energy is near 0.9. Energy overpowered genre. Nothing was broken; the weights were my choice.
+- **Profile comparisons:** High-Energy Pop and Chill Lofi share no songs (loud and electronic vs. quiet and acoustic), so the energy and acousticness dials work. Deep Intense Rock is the opposite of Chill Lofi, also with no overlap. Pop and Rock get similar lists because both want high energy; only the #1 differs (Sunrise City vs. Storm Runner).
+- **Pop + sad:** No song is "sad," so Gym Hero (intense) moves to #1. Mood is worth only 1 point.
+- **Edge cases:** "k-pop" and the typo "Pop" returned identical lists (genre silently scores zero). An empty profile returned all zeros and just the first five rows. "Metal but energy 0.0" got calm classical and ambient songs. Out-of-range or wrong-type energy values (1.5, 90, "high") were rejected with a clear error.
+- **Not tried:** Adding tempo or valence to the score. This is listed as future work in the model card.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+Full outputs are in the Profile Experiments section above, and the analysis is in [model_card.md](model_card.md#7-evaluation).
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+- **Tiny catalog:** Only 20 songs, and 14 of 17 genres have exactly one song, so most users run out of genre matches after #1.
+- **Energy gap:** Energy values are bimodal (11 songs at 0.20-0.55, 9 at 0.75-0.97, none between). A listener who wants about 0.65 energy is far from every song.
+- **Energy can overpower genre and mood:** Loud songs from other genres show up for pop fans, and "Gym Hero" keeps appearing for happy pop listeners because the system can't tell "happy" from "intense."
+- **No input checking beyond energy:** Typos and unknown genres silently score zero. Contradictory profiles (metal but zero energy) are not flagged.
+- **Unused features and no lyrics:** Tempo, valence and danceability are not scored, and the system knows nothing about lyrics, language, artist or listening history.
 
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+See [model_card.md](model_card.md#6-limitations-and-bias) for details.
 
 ---
 
@@ -699,10 +692,6 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+A recommender turns data into predictions through a series of choices about what to measure and how much each thing counts. My weights were judgment calls, and changing them changed who got good results. The code that adds up the points is the easy part; deciding what counts is the real design work. Attaching a reason to each pick ("genre match, energy close to target") also made the list feel thoughtful, even though the system never listens to a song.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
-
+Bias showed up mostly through the data, not the scoring rule. With 20 songs, one-song genres and a gap in the energy values, listeners with rare genres or medium-energy taste were under-served, while lofi and high-energy fans did well. In a real system the same thing could happen through popularity, genre imbalance or an over-weighted signal, and it would be easy to miss because the system works for most people. See the [Model Card](model_card.md) for my full reflection.
