@@ -40,20 +40,72 @@ def print_recommendations(user_prefs: dict, recommendations: list) -> None:
     print(f"\n{rule}\n")
 
 
-def main() -> None:
-    songs = load_songs("data/songs.csv") 
-
-    # Starter example profile
-    user_prefs = {
+PROFILES = {
+    "High-Energy Pop": {
         "genre": "pop",
         "mood": "happy",
-        "energy": 0.8,
+        "energy": 0.9,
         "likes_acoustic": False,
-    }
+    },
+    "Chill Lofi": {
+        "genre": "lofi",
+        "mood": "chill",
+        "energy": 0.3,
+        "likes_acoustic": True,
+    },
+    "Deep Intense Rock": {
+        "genre": "rock",
+        "mood": "intense",
+        "energy": 0.95,
+        "likes_acoustic": False,
+    },
+}
 
-    recommendations = recommend_songs(user_prefs, songs, k=5)
 
-    print_recommendations(user_prefs, recommendations)
+ADVERSARIAL_PROFILES = {
+    "Conflict: pop + sad + high energy": {
+        "genre": "pop", "mood": "sad", "energy": 0.9, "likes_acoustic": False,
+    },
+    "Conflict: metal/angry but energy 0.0": {
+        "genre": "metal", "mood": "angry", "energy": 0.0, "likes_acoustic": False,
+    },
+    "Conflict: classical/serene but loud + non-acoustic": {
+        "genre": "classical", "mood": "serene", "energy": 0.95, "likes_acoustic": False,
+    },
+    "Conflict: metal but likes acoustic": {
+        "genre": "metal", "energy": 0.97, "likes_acoustic": True,
+    },
+    "Case mismatch: 'Pop'": {
+        "genre": "Pop", "mood": "happy", "energy": 0.8, "likes_acoustic": False,
+    },
+    "Unknown genre: k-pop": {
+        "genre": "k-pop", "mood": "happy", "energy": 0.8, "likes_acoustic": False,
+    },
+    "Empty profile": {},
+    "Mood only: chill": {"mood": "chill"},
+    "Out of range: energy 1.5": {
+        "genre": "pop", "mood": "happy", "energy": 1.5, "likes_acoustic": False,
+    },
+    "Out of range: energy 90 (percent)": {
+        "genre": "pop", "mood": "happy", "energy": 90, "likes_acoustic": False,
+    },
+    "Wrong type: energy 'high'": {
+        "genre": "pop", "mood": "happy", "energy": "high", "likes_acoustic": False,
+    },
+}
+
+
+def main() -> None:
+    songs = load_songs("data/songs.csv")
+
+    for name, user_prefs in {**PROFILES, **ADVERSARIAL_PROFILES}.items():
+        print(f"\n>>> Profile: {name}")
+        try:
+            recommendations = recommend_songs(user_prefs, songs, k=5)
+        except ValueError as exc:
+            print(f"  !! REJECTED: {exc}")
+            continue
+        print_recommendations(user_prefs, recommendations)
 
 
 if __name__ == "__main__":

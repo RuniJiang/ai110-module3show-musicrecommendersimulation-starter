@@ -83,6 +83,12 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
         reasons.append(f"mood match ({song['mood']}) +1.0")
 
     if target_energy is not None:
+        if (
+            isinstance(target_energy, bool)
+            or not isinstance(target_energy, (int, float))
+            or not 0.0 <= target_energy <= 1.0
+        ):
+            raise ValueError(f"energy must be a number between 0 and 1, got {target_energy!r}")
         points = 2.0 * (1 - abs(song["energy"] - target_energy))
         score += points
         reasons.append(f"energy {song['energy']:.2f} vs target {target_energy:.2f} +{points:.2f}")
