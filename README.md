@@ -124,15 +124,52 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
+Running `python src/main.py` with the default taste profile produces:
 
-```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
+```text
+Loaded songs: 20
+
+============================================================
+                     TOP RECOMMENDATIONS
+============================================================
+  Profile: genre=pop, mood=happy, energy=0.8, acoustic=False
+------------------------------------------------------------
+
+  #1  Sunrise City  by Neon Echo
+      Score: 5.45
+      Reasons:
+        - genre match (pop) +2.0
+        - mood match (happy) +1.0
+        - energy 0.82 vs target 0.80 +1.96
+        - acousticness 0.18 +0.49
+
+  #2  Gym Hero  by Max Pulse
+      Score: 4.17
+      Reasons:
+        - genre match (pop) +2.0
+        - energy 0.93 vs target 0.80 +1.74
+        - acousticness 0.05 +0.42
+
+  #3  Rooftop Lights  by Indigo Parade
+      Score: 3.34
+      Reasons:
+        - mood match (happy) +1.0
+        - energy 0.76 vs target 0.80 +1.92
+        - acousticness 0.35 +0.43
+
+  #4  Concrete Kings  by Block Syndicate
+      Score: 2.40
+      Reasons:
+        - energy 0.78 vs target 0.80 +1.96
+        - acousticness 0.09 +0.45
+
+  #5  Night Drive Loop  by Neon Echo
+      Score: 2.39
+      Reasons:
+        - energy 0.75 vs target 0.80 +1.90
+        - acousticness 0.22 +0.49
+
+============================================================
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
