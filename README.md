@@ -17,7 +17,7 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Real-world recommenders such as Spotify or YouTube combine two main ideas. Collaborative filtering uses the behavior of many users (skips, replays, playlist adds, likes) to find songs that people with similar taste enjoyed. Content-based filtering looks at the attributes of the songs themselves, such as audio features, genre, and mood, and matches them to what a user has liked before. Production systems blend both, then re-rank the results for freshness and variety. My version is purely content-based, because the simulation has no listening history from other users. It prioritizes **how close a song is to the user's preferred vibe** rather than how "big" a value is. Energy is the strongest signal, since it cleanly separates calm songs from intense ones in the catalog. Mood and genre are secondary matches. Acousticness is a small tiebreaker.
+Real-world recommenders such as Spotify or YouTube combine two main ideas. Collaborative filtering uses the behavior of many users (skips, replays, playlist adds, likes) to find songs that people with similar taste enjoyed. Content-based filtering looks at the attributes of the songs themselves, such as audio features, genre, and mood, and matches them to what a user has liked before. Production systems blend both, then re-rank the results for freshness and variety. My version is purely content-based, because the simulation has no listening history from other users. It prioritizes **how close a song is to the user's preferred vibe** rather than how "big" a value is. Genre is the biggest single rule, energy closeness is equally large in potential points and separates calm songs from intense ones, mood is a secondary match, and acousticness is a small tiebreaker.
 
 ### Features used
 
@@ -50,26 +50,40 @@ taste_profile = {
 }
 ```
 
-### Scoring Rule (one song)
+## Algorithm Recipe
 
-Numeric features are scored by closeness, not magnitude, so a song scores highest when it is near the user's target:
+The recipe has two steps: a **scoring rule** that grades one song, and a **ranking rule** that applies it to the whole catalog and picks the winners.
 
-```
-energy_score = 1 - |song.energy - user.target_energy|
-```
+### Step 1: Scoring Rule (one song)
 
-The final score is a weighted sum (weights are a starting point to tune in experiments):
+A song's score is the sum of four point rules. Numeric features are scored by closeness to the user's target, not by magnitude, so the best song is the one nearest the target.
 
-| Component | Weight |
-|---|---|
-| Energy closeness | 0.45 |
-| Mood match | 0.25 |
-| Genre match | 0.20 |
-| Acousticness closeness | 0.10 |
+| Rule | Points | How it is computed |
+|---|---|---|
+| Genre match | **+2.0** | `song.genre == user.favorite_genre`, otherwise 0 |
+| Mood match | **+1.0** | `song.mood == user.favorite_mood`, otherwise 0 |
+| Energy similarity | **0 to +2.0** | `2.0 * (1 - abs(song.energy - user.target_energy))` |
+| Acousticness similarity | **0 to +0.5** | `0.5 * (1 - abs(song.acousticness - target_acoustic))`, where `target_acoustic` is 0.8 if `likes_acoustic` else 0.2 |
 
-### Ranking Rule (all songs)
+Maximum possible score: **5.5**.
 
-The scoring rule judges one song in isolation. The ranking rule scores every song in the catalog, sorts by score in descending order, and returns the top `k`. Each result includes a short explanation of which features contributed to its score.
+**Example**: user = lofi / chill / energy 0.40 / likes acoustic. "Library Rain" (lofi, chill, energy 0.35, acousticness 0.86) scores 2.0 + 1.0 + 1.90 + 0.47 = **5.37**.
+
+### Step 2: Ranking Rule (all songs)
+
+1. Score every song in the catalog with the scoring rule.
+2. Sort by score, highest first.
+3. Return the top `k`, each with a short explanation of which rules contributed points.
+
+### Why These Weights
+
+- **Genre (2.0)**: the broadest signal of taste, so the largest single yes/no rule.
+- **Mood (1.0)**: refines the choice within a genre, but is a softer preference.
+- **Energy (up to 2.0)**: as large as genre in potential points. A near-perfect energy match can outrank a genre match whose energy is far off, and energy is what separates songs that share genre and mood.
+- **Acousticness (up to 0.5)**: capped low so it only breaks ties.
+- **Not scored**: `tempo_bpm`, `valence`, `danceability` overlap with energy. They are kept for experiments, e.g. halving genre to 1.0 and doubling energy to test how much genre dominates.
+
+**Known bias risk**: the 2.0 genre bonus may skew results for users with a rare favorite genre, or toward genres with many songs in the catalog. Test this in the experiments section.
 
 ---
 
