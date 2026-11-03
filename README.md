@@ -17,17 +17,46 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders such as Spotify or YouTube combine two main ideas. Collaborative filtering uses the behavior of many users (skips, replays, playlist adds, likes) to find songs that people with similar taste enjoyed. Content-based filtering looks at the attributes of the songs themselves, such as audio features, genre, and mood, and matches them to what a user has liked before. Production systems blend both, then re-rank the results for freshness and variety. My version is purely content-based, because the simulation has no listening history from other users. It prioritizes **how close a song is to the user's preferred vibe** rather than how "big" a value is. Energy is the strongest signal, since it cleanly separates calm songs from intense ones in the catalog. Mood and genre are secondary matches. Acousticness is a small tiebreaker.
 
-Some prompts to answer:
+### Features used
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+**`Song`** (loaded from `data/songs.csv`):
 
-You can include a simple diagram or bullet list if helpful.
+- `id`, `title`, `artist`: identification and display only, not scored
+- `genre`: categorical, scored as a match or no match
+- `mood`: categorical, scored as a match or no match
+- `energy` (0–1): scored by closeness to the user's target
+- `acousticness` (0–1): scored by closeness to the user's acoustic preference
+- `tempo_bpm`, `valence`, `danceability`: stored on the song but not scored in the baseline, because they largely overlap with energy. They are available for later experiments.
+
+**`UserProfile`**:
+
+- `favorite_genre`: the genre to match
+- `favorite_mood`: the mood to match
+- `target_energy` (0–1): the energy level the user wants
+- `likes_acoustic` (bool): when true, the target acousticness is high; when false, it is low
+
+### Scoring Rule (one song)
+
+Numeric features are scored by closeness, not magnitude, so a song scores highest when it is near the user's target:
+
+```
+energy_score = 1 - |song.energy - user.target_energy|
+```
+
+The final score is a weighted sum (weights are a starting point to tune in experiments):
+
+| Component | Weight |
+|---|---|
+| Energy closeness | 0.45 |
+| Mood match | 0.25 |
+| Genre match | 0.20 |
+| Acousticness closeness | 0.10 |
+
+### Ranking Rule (all songs)
+
+The scoring rule judges one song in isolation. The ranking rule scores every song in the catalog, sorts by score in descending order, and returns the top `k`. Each result includes a short explanation of which features contributed to its score.
 
 ---
 
