@@ -64,6 +64,10 @@ def load_songs(csv_path: str) -> List[Dict]:
     print(f"Loaded songs: {len(songs)}")
     return songs
 
+# EXPERIMENT (weight shift): genre halved (2.0 -> 1.0), energy doubled (2.0 -> 4.0).
+GENRE_WEIGHT = 1.0
+ENERGY_WEIGHT = 4.0
+
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """Score one song against user preferences, returning the score and its reasons."""
     genre = user_prefs.get("genre")
@@ -75,8 +79,8 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     reasons: List[str] = []
 
     if genre is not None and song["genre"] == genre:
-        score += 2.0
-        reasons.append(f"genre match ({song['genre']}) +2.0")
+        score += GENRE_WEIGHT
+        reasons.append(f"genre match ({song['genre']}) +{GENRE_WEIGHT:.1f}")
 
     if mood is not None and song["mood"] == mood:
         score += 1.0
@@ -89,7 +93,7 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
             or not 0.0 <= target_energy <= 1.0
         ):
             raise ValueError(f"energy must be a number between 0 and 1, got {target_energy!r}")
-        points = 2.0 * (1 - abs(song["energy"] - target_energy))
+        points = ENERGY_WEIGHT * (1 - abs(song["energy"] - target_energy))
         score += points
         reasons.append(f"energy {song['energy']:.2f} vs target {target_energy:.2f} +{points:.2f}")
 
